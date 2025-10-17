@@ -55,13 +55,7 @@ bool body (void) {
     if (!check_lc_state("RAW", RAW)) return false;
 
     // Obtain mutex to be able to write to the LCC CSRs.
-    const uint32_t claim_trans_val = 0x96;
-    uint32_t reg_value, loop_ctrl;
-    while (loop_ctrl != claim_trans_val) {
-        lsu_write_32(LC_CTRL_CLAIM_TRANSITION_IF_OFFSET, claim_trans_val);
-        reg_value = lsu_read_32(LC_CTRL_CLAIM_TRANSITION_IF_OFFSET);
-        loop_ctrl = reg_value & claim_trans_val;
-    }
+    claim_transition_mutex();
 
     // Activate volatile raw unlock mode.
     lsu_write_32(SOC_LC_CTRL_TRANSITION_CTRL, 0x2);
@@ -75,18 +69,4 @@ bool body (void) {
     return check_lc_state("RAW", RAW);
 }
 
-void main (void) {
-    VPRINTF(LOW, "=================\nMCU Caliptra Boot Go\n=================\n\n");
-
-    mcu_cptra_init_d();
-    wait_dai_op_idle(0);
-
-    lcc_initialization();
-    grant_mcu_for_fc_writes();
-
-    bool test_passed = body();
-
-    nop_sleep(160);
-
-    SEND_STDOUT_CTRL(test_passed ? TB_CMD_TEST_PASS : TB_CMD_TEST_FAIL);
-}
+void main (void) { fc_run_test(true, body); }

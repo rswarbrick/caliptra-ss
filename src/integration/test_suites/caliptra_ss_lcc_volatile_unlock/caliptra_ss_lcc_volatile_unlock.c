@@ -83,9 +83,7 @@ bool body (void) {
     // lifecycle state should be back to RAW (rather than e.g. TEST_UNLOCKED0)
     reset_fc_lcc_rtl();
     lcc_initialization();
-    if (!check_lc_state("RAW", RAW)) return false;
-
-    return true;
+    return check_lc_state("RAW", RAW);
 }
 
 void main (void) { fc_run_test(true, body); }
